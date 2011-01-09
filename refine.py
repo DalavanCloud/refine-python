@@ -11,16 +11,21 @@ class Refine:
   def __init__(self, server='http://127.0.0.1:3333'):
     self.server = server[0,-1] if server.endswith('/') else server
   
-  def new_project(self, file_path, options=None):
+  def new_project(self, file_path=None, file_url=None, options=None):
     file_name = os.path.split(file_path)[-1]
     project_name = options['project_name'] if options != None and 'project_name' in options else file_name
     data = {
-      'project-file' : {
-        'fd' : open(file_path),
-        'filename' : file_name
-      },
       'project-name' : project_name
     }
+    if file_path:
+      data['project-file'] = {
+        'fd' : open(file_path),
+        'filename' : file_name
+      }
+    if file_url:
+      data['project-url'] = file_url
+    if file_path and file_url:
+        raise Exception("Only file_path or file_url valid, not both")
 
     response = urllib2.urlopen(self.server + '/command/core/create-project-from-upload', data)
     response.read()
