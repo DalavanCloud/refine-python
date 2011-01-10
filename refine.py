@@ -12,23 +12,25 @@ class Refine:
     self.server = server[0,-1] if server.endswith('/') else server
   
   def new_project(self, project_file=None, project_url=None, options=None):
-    file_name = os.path.split(project_file)[-1]
-    project_name = options['project_name'] if options != None and 'project_name' in options else file_name
-    data = {
-      'project-name' : project_name
-    }
+    data = { }
+
     if project_file:
+      file_name = os.path.split(project_file)[-1]
       data['project-file'] = {
         'fd' : open(project_file),
         'filename' : file_name
       }
     if project_url:
+      file_name = os.path.split(urlparse.urlparse(project_url).path)[-1]
       data['project-url'] = project_url
     if project_file and project_url:
         raise Exception("Only project_file or project_url valid, not both")
 
+    project_name = options['project_name'] if options != None and 'project_name' in options else file_name
+    data['project-name'] = project_name
+
     response = urllib2.urlopen(self.server + '/command/core/create-project-from-upload', data)
-    response.read()
+    response_body = response.read()
     url_params = urlparse.parse_qs(urlparse.urlparse(response.geturl()).query)
     if 'project' in url_params:
       id = url_params['project'][0]
